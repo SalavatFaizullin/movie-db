@@ -2,12 +2,10 @@
 import React from 'react'
 import './Movie.css'
 import { format } from 'date-fns'
+import { enGB } from 'date-fns/locale'
 
 function Movie(props) {
   const { title, date, image, overview } = props
-
-  const formDate = date.split('-').join(', ')
-  const finalDate = format(new Date('2020, 2, 2'), 'MMMM dd, yyyy')
 
   return (
     <div className='movie-card'>
@@ -22,7 +20,7 @@ function Movie(props) {
       )}
       <div className='movie-card__info'>
         <h5 className='movie-card__title'>{title}</h5>
-        <div className='movie-card__date'>{finalDate}</div>
+        <div className='movie-card__date'>{format(new Date('2007, 10, 10'), 'MMMM dd, yyyy', { locale: enGB })}</div>
         <div className='movie-card__genre'>
           <div>Action</div>
           <div>Drama</div>

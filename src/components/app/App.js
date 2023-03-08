@@ -6,11 +6,12 @@ import './App.css'
 import MovieList from '../movie-list'
 import MoviedbService from '../../services/moviedbService'
 import { Online, Offline } from 'react-detect-offline'
-import ErrorAlert from '../error-alert/ErrorAlert'
-import OfflineAlert from '../offline-alert/OfflineAlert'
-import Spinner from '../spinner/Spinner'
-import SearchArea from '../search-area/SearchArea'
+import ErrorAlert from '../error-alert'
+import OfflineAlert from '../offline-alert'
+import Spinner from '../spinner'
+import SearchArea from '../search-area'
 import { debounce } from 'lodash'
+import Pages from '../pages'
 
 class App extends Component {
   MoviedbService = new MoviedbService()
@@ -20,62 +21,71 @@ class App extends Component {
     loading: false,
     searchTerm: '',
     error: false,
-    errorMessage: '',
+    currentPage: 1,
+    totalResults: 0,
   }
 
   debounceSearch = debounce((e) => {
     this.setState({
-      searchTerm: e.target.value,
       loading: true,
     })
-    if (this.state.searchTerm !== '') {
-      this.MoviedbService.getMovies(this.state.searchTerm)
-        .then((data) => {
-          this.setState({
-            movies: data.results,
-            loading: false,
-            searchTerm: '',
-          })
+    this.MoviedbService.getMovies(e.target.value, this.state.currentPage)
+      .then((data) => {
+        this.setState({
+          movies: data.results,
+          loading: false,
+          searchTerm: e.target.value,
+          totalResults: data.total_results,
+          currentPage: 1
         })
-        .catch(this.onError)
-    } else {
-      this.debounceSearch(e)
-    }
-  }, 1000)
+      })
+      .catch(this.onError)
+  }, 2500)
 
   handleKeyUp = (e) => {
     this.debounceSearch(e)
   }
 
-  onError = (error) => {
+  onError = () => {
     this.setState({
       error: true,
       loading: false,
-      errorMessage: error.mesage,
     })
   }
 
+  onPageChange = (page) => {
+    this.setState({
+      loading: true,
+    })
+    this.MoviedbService.getMovies(this.state.searchTerm, page)
+      .then((data) => {
+        this.setState({
+          movies: data.results,
+          loading: false,
+          currentPage: page,
+        })
+      })
+      .catch(this.onError)
+  }
+
   render() {
-    const { movies, loading, error } = this.state
+    const { movies, loading, error, totalResults: totalPages, currentPage } = this.state
     const hasData = !(loading || error)
     const errorAlert = error ? <ErrorAlert /> : null
     const offlineAlert = <OfflineAlert />
-    const spinner = loading ? (
-      <>
-        {/* <SearchArea handleSubmit={this.handleSubmit} handleKeyUp={this.handleKeyUp} /> */}
-        <Spinner />
-      </>
-    ) : null
+    const spinner = loading ? <Spinner /> : null
     const content = hasData ? (
       <>
-        <SearchArea handleSubmit={this.handleSubmit} handleKeyUp={this.handleKeyUp} />
+        <Pages current={currentPage} totalPages={totalPages} onChange={this.onPageChange} />
         <MovieList movies={movies} />
+        <Pages current={currentPage} totalPages={totalPages} onChange={this.onPageChange} />
       </>
     ) : null
 
     return (
       <div className='app'>
         <Online>
+          <SearchArea handleSubmit={this.handleSubmit} handleKeyUp={this.handleKeyUp} />
           {errorAlert}
           {spinner}
           {content}

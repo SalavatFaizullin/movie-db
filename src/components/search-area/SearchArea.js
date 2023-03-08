@@ -5,7 +5,7 @@ import './SearchArea.css'
 
 const SearchArea = (props) => {
   return (
-    <div>
+    <div className='search-input'>
       <Input placeholder='Type to search...' onKeyUp={props.handleKeyUp} />
     </div>
   )
