@@ -20,7 +20,7 @@ function Movie(props) {
       )}
       <div className='movie-card__info'>
         <h5 className='movie-card__title'>{title}</h5>
-        <div className='movie-card__date'>{format(new Date('2007, 10, 10'), 'MMMM dd, yyyy', { locale: enGB })}</div>
+        <div className='movie-card__date'>{date === '' ? '' : format(new Date(date), 'MMMM dd, yyyy', { locale: enGB })}</div>
         <div className='movie-card__genre'>
           <div>Action</div>
           <div>Drama</div>

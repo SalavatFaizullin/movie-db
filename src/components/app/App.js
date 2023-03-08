@@ -8,6 +8,7 @@ import MoviedbService from '../../services/moviedbService'
 import { Online, Offline } from 'react-detect-offline'
 import ErrorAlert from '../error-alert'
 import OfflineAlert from '../offline-alert'
+import NoFoundAlert from '../no-found-alert'
 import Spinner from '../spinner'
 import SearchArea from '../search-area'
 import { debounce } from 'lodash'
@@ -21,29 +22,32 @@ class App extends Component {
     loading: false,
     searchTerm: '',
     error: false,
-    currentPage: 1,
     totalResults: 0,
+    currentPage: 1,
+    notFound: false
   }
 
-  debounceSearch = debounce((e) => {
+  search = debounce((e) => {
     this.setState({
       loading: true,
     })
-    this.MoviedbService.getMovies(e.target.value, this.state.currentPage)
+    this.MoviedbService.getMovies(e.target.value, 1)
       .then((data) => {
+        const isFound = Boolean (!data.total_results)
         this.setState({
           movies: data.results,
           loading: false,
           searchTerm: e.target.value,
           totalResults: data.total_results,
-          currentPage: 1
+          currentPage: 1,
+          notFound: isFound
         })
       })
       .catch(this.onError)
   }, 2500)
 
   handleKeyUp = (e) => {
-    this.debounceSearch(e)
+    this.search(e)
   }
 
   onError = () => {
@@ -69,8 +73,9 @@ class App extends Component {
   }
 
   render() {
-    const { movies, loading, error, totalResults: totalPages, currentPage } = this.state
+    const { movies, loading, error, totalResults: totalPages, currentPage, notFound } = this.state
     const hasData = !(loading || error)
+    const noFoundAlert = notFound ? <NoFoundAlert /> : null
     const errorAlert = error ? <ErrorAlert /> : null
     const offlineAlert = <OfflineAlert />
     const spinner = loading ? <Spinner /> : null
@@ -85,7 +90,8 @@ class App extends Component {
     return (
       <div className='app'>
         <Online>
-          <SearchArea handleSubmit={this.handleSubmit} handleKeyUp={this.handleKeyUp} />
+          <SearchArea handleKeyUp={this.handleKeyUp} />
+          {noFoundAlert}
           {errorAlert}
           {spinner}
           {content}

@@ -1,6 +1,7 @@
 /* eslint-disable */
 import React from 'react'
 import { Pagination } from 'antd'
+import './Pages.css'
 
 const Pages = (props) => {
   return (
