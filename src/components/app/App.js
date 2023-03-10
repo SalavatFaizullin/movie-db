@@ -6,9 +6,7 @@ import './App.css'
 import MovieList from '../movie-list'
 import MoviedbService from '../../services/moviedbService'
 import { Online, Offline } from 'react-detect-offline'
-import ErrorAlert from '../error-alert'
-import OfflineAlert from '../offline-alert'
-import NoFoundAlert from '../no-found-alert'
+import { Alert } from 'antd'
 import Spinner from '../spinner'
 import SearchArea from '../search-area'
 import { debounce } from 'lodash'
@@ -24,7 +22,7 @@ class App extends Component {
     error: false,
     totalResults: 0,
     currentPage: 1,
-    notFound: false
+    isFound: true
   }
 
   search = debounce((e) => {
@@ -33,14 +31,14 @@ class App extends Component {
     })
     this.MoviedbService.getMovies(e.target.value, 1)
       .then((data) => {
-        const isFound = Boolean (!data.total_results)
+        const isFound = data.results.length
         this.setState({
           movies: data.results,
           loading: false,
           searchTerm: e.target.value,
           totalResults: data.total_results,
           currentPage: 1,
-          notFound: isFound
+          isFound: isFound
         })
       })
       .catch(this.onError)
@@ -73,12 +71,32 @@ class App extends Component {
   }
 
   render() {
-    const { movies, loading, error, totalResults: totalPages, currentPage, notFound } = this.state
+    const { movies, loading, error, totalResults: totalPages, currentPage, isFound } = this.state
+
     const hasData = !(loading || error)
-    const noFoundAlert = notFound ? <NoFoundAlert /> : null
-    const errorAlert = error ? <ErrorAlert /> : null
-    const offlineAlert = <OfflineAlert />
+
+    const nothingFoundAlert = isFound ? null : (
+      <div className='alert-message'>
+        <Alert message='Sorry, nothing was found on your request. Please, try again.' type='info' showIcon />
+      </div>
+    )
+    const errorAlert = error ? (
+      <div className='alert-message'>
+        <Alert
+          message={`Sorry, something went wrong. We're working on it right now. Please, come back later.`}
+          type='error'
+          showIcon
+        />
+      </div>
+    ) : null
+    const offlineAlert = (
+      <div className='alert-message'>
+        <Alert message="You're offline. Please, check your connection." type='error' showIcon />
+      </div>
+    )
+
     const spinner = loading ? <Spinner /> : null
+
     const content = hasData ? (
       <>
         <Pages current={currentPage} totalPages={totalPages} onChange={this.onPageChange} />
@@ -91,7 +109,7 @@ class App extends Component {
       <div className='app'>
         <Online>
           <SearchArea handleKeyUp={this.handleKeyUp} />
-          {noFoundAlert}
+          {nothingFoundAlert}
           {errorAlert}
           {spinner}
           {content}
