@@ -1,6 +1,6 @@
 /* eslint-disable */
 export default class MoviedbService {
-  apiKey = process.env.REACT_APP_USER_TOKEN;
+  apiKey = ${{ secrets.REACT_APP_USER_TOKEN }};
   apiBase = 'https://api.themoviedb.org/3/search'
 
   async getMovies(keyword, pageNumber) {
